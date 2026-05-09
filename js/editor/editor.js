@@ -14,11 +14,14 @@ export function initEditor(containerId) {
 
     logger.info('Initializing Monaco Editor');
     
-    const savedCode = localStorage.getItem('javaCode');
+    let savedCode = localStorage.getItem('javaCode');
+    if (!savedCode || savedCode.trim() === '') {
+        savedCode = DEFAULT_CODE;
+    }
     const isDark = document.body.classList.contains('dark-theme');
     
     editorInstance = window.monaco.editor.create(document.getElementById(containerId), {
-        value: savedCode || DEFAULT_CODE,
+        value: savedCode,
         language: 'java',
         theme: isDark ? 'vs-dark' : 'vs',
         fontSize: 14,
