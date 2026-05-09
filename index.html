@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Java Runtime Environment - Browser IDE</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Monaco Editor -->
+    <link rel="stylesheet" data-name="vs/editor/editor.main" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/editor/editor.main.min.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>☕ Java Runtime Environment</h1>
+            <p>Practice Java coding directly in your browser</p>
+        </header>
+
+        <div class="main-content">
+            <div class="editor-section">
+                <div class="editor-header">
+                    <h2>Code Editor</h2>
+                    <div class="editor-actions">
+                        <button id="runBtn" class="btn btn-primary">▶ Run Code</button>
+                        <button id="clearBtn" class="btn btn-secondary">🗑 Clear Output</button>
+                        <button id="resetBtn" class="btn btn-secondary">↻ Reset Template</button>
+                    </div>
+                </div>
+                <div id="editor" class="editor"></div>
+            </div>
+
+            <div class="output-section">
+                <div class="output-header">
+                    <h2>Output Console</h2>
+                </div>
+                <div id="output" class="output"></div>
+                <div id="error" class="error"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div id="loadingIndicator" class="loading-indicator hidden">
+        <div class="spinner"></div>
+        <p>Compiling and running...</p>
+    </div>
+
+    <!-- Monaco Editor Script -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
+    
+    <!-- Application Scripts -->
+    <script src="js/app.js"></script>
+</body>
+</html>
