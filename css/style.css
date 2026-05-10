@@ -91,7 +91,15 @@ body {
 .container { width: 100%; max-width: 1600px; display: flex; flex-direction: column; height: 96vh; gap: 20px; z-index: 1; }
 .header { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; }
 .header-content { display: flex; align-items: center; gap: 16px; }
-.app-logo { width: 56px; height: 56px; object-fit: contain; }
+.app-logo { 
+    width: 56px; 
+    height: 56px; 
+    object-fit: contain; 
+    background-color: white; 
+    border-radius: 14px; 
+    padding: 6px; 
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); 
+}
 .header h1 {
     font-size: 2.2em; font-weight: 700; background: linear-gradient(to right, var(--text-muted), var(--accent));
     -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -0.5px;
