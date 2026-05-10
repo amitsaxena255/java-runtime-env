@@ -5,6 +5,10 @@ let editorInstance = null;
 
 const DEFAULT_CODE = `public class Solution {
     public static void main(String[] args) {
+        solution();
+    }
+
+    public static void solution() {
         System.out.println("Welcome to Oasis IDE!");
     }
 }`;
