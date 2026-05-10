@@ -14,7 +14,10 @@ class Telemetry {
         this.events.push(event);
         logger.debug(`[Telemetry] Tracked event: ${eventName}`, properties);
         
-        // In a real production app, we would batch and send these to a backend
+        // Push telemetry directly to Google Analytics
+        if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
+            window.gtag('event', eventName, properties);
+        }
     }
 
     getEvents() {
