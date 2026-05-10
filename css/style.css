@@ -161,5 +161,18 @@ body {
 @media (max-width: 1024px) {
     .container { height: auto; min-height: 96vh; }
     .main-content { grid-template-columns: 1fr; overflow-y: visible; }
-    .editor-section, .output-section { height: 600px; min-height: unset; }
+    .editor-section, .output-section { height: 60vh; min-height: 400px; }
+}
+@media (max-width: 768px) {
+    body { padding: 1vh 4vw; }
+    .header { flex-direction: column; align-items: stretch; gap: 16px; text-align: center; }
+    .header-content { flex-direction: column; text-align: center; justify-content: center; }
+    .header-actions { display: flex; justify-content: center; }
+    .header h1 { font-size: 1.8em; }
+    .app-logo { width: 48px; height: 48px; }
+    .panel-header { flex-direction: column; align-items: stretch; gap: 16px; }
+    .panel-header h2 { text-align: center; }
+    .editor-actions { justify-content: center; flex-wrap: wrap; gap: 8px; }
+    .btn { font-size: 0.85rem; padding: 6px 12px; }
+    .editor-section, .output-section { height: 50vh; min-height: 350px; }
 }
