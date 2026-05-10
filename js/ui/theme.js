@@ -10,7 +10,10 @@ export function setupThemeToggle() {
         body.classList.toggle('dark-theme');
         
         const isDark = body.classList.contains('dark-theme');
-        toggleBtn.textContent = isDark ? '☀️ Light Mode' : '🌙 Dark Mode';
+        const span = toggleBtn.querySelector('span');
+        if (span) {
+            span.textContent = isDark ? 'Light Theme' : 'Theme';
+        }
         
         telemetry.track('theme_toggled', { theme: isDark ? 'dark' : 'light' });
         
