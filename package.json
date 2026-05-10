@@ -1,0 +1,24 @@
+{
+  "name": "java-runtime-env",
+  "version": "1.0.0",
+  "description": "A fully functional in-browser Java IDE for practicing Java coding. Write, compile, and run Java programs directly in your browser with no backend required.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/amitsaxena255/java-runtime-env.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/amitsaxena255/java-runtime-env/issues"
+  },
+  "homepage": "https://github.com/amitsaxena255/java-runtime-env#readme",
+  "dependencies": {
+    "playwright": "^1.59.1"
+  }
+}
