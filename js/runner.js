@@ -1,4 +1,4 @@
-import { validateJavaCode, transpileJavaToJS } from './transpiler/index.js';
+import { validateJavaCode, enforceSemicolons, transpileJavaToJS } from './transpiler/index.js';
 import { logger } from './utils/logger.js';
 import { telemetry } from './utils/telemetry.js';
 
@@ -12,6 +12,12 @@ export async function executeJava(code) {
             if (!validateJavaCode(code)) {
                 telemetry.track('code_run_failed', { reason: 'validation_error' });
                 throw new Error('Invalid Java code structure. Please ensure you have a public class with a main method.');
+            }
+            
+            const semicolonError = enforceSemicolons(code);
+            if (semicolonError) {
+                telemetry.track('code_run_failed', { reason: 'missing_semicolon' });
+                throw new Error('Syntax Error: ' + semicolonError);
             }
 
             const jsCode = transpileJavaToJS(code);

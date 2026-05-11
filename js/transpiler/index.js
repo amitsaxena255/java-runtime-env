@@ -7,6 +7,40 @@ export function validateJavaCode(code) {
     return hasClass && hasMain;
 }
 
+export function enforceSemicolons(code) {
+    const lines = code.split('\n');
+    let insideComment = false;
+
+    for (let i = 0; i < lines.length; i++) {
+        let line = lines[i].trim();
+        
+        if (line.startsWith('/*')) insideComment = true;
+        if (line.endsWith('*/')) { insideComment = false; continue; }
+        if (insideComment || line.startsWith('//') || line === '') continue;
+
+        // Check statements that should always end with a semicolon
+        if (line.startsWith('System.out') || 
+            line.match(/^(int|String|boolean|double|float|long|char|byte|short)\s+[a-zA-Z_]/) || 
+            line.startsWith('return ') || 
+            line === 'break' || 
+            line === 'continue' ||
+            line.match(/^[a-zA-Z_][a-zA-Z0-9_]*(?:\[.*\])?\s*=(?!=)/)) {
+            
+            if (!line.endsWith(';') && !line.endsWith('{') && !line.endsWith(',')) {
+                return `Line ${i + 1}: Missing semicolon (;)\n  > ${lines[i].trim()}`;
+            }
+        }
+        
+        // Check simple method calls (like solution())
+        if (line.match(/^[a-zA-Z_][a-zA-Z0-9_]*\s*\(/)) {
+            if (!line.endsWith('{') && !line.endsWith(';')) {
+                return `Line ${i + 1}: Missing semicolon (;)\n  > ${lines[i].trim()}`;
+            }
+        }
+    }
+    return null;
+}
+
 export function transpileJavaToJS(javaCode) {
     logger.debug('Starting transpilation of Java code');
     let jsCode = javaCode;
