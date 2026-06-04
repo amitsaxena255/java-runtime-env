@@ -129,6 +129,19 @@ export function transpileJavaToJS(javaCode, appendMain = true, isDebug = false) 
         return '//' + ' '.repeat(match.length - 2);
     });
 
+    // Stash string literals to protect them from regex replacements
+    const stringStash = [];
+    jsCode = jsCode.replace(/"([^"\\]|\\.)*"/g, (match) => {
+        const placeholder = `__STR_LITERAL_${stringStash.length}__`;
+        stringStash.push(match);
+        return placeholder;
+    });
+    jsCode = jsCode.replace(/'([^'\\]|\\.)*'/g, (match) => {
+        const placeholder = `__STR_LITERAL_${stringStash.length}__`;
+        stringStash.push(match);
+        return placeholder;
+    });
+
     // Strip Java import statements
     jsCode = jsCode.replace(/^\s*import\s+[\w.*]+;/gm, '');
 
@@ -173,6 +186,9 @@ export function transpileJavaToJS(javaCode, appendMain = true, isDebug = false) 
 
     const funcPrefix = isDebug ? 'async function' : 'function';
 
+    // Transpile constructors (e.g. TreeNode(int val) { -> function TreeNode(int val) {)
+    jsCode = jsCode.replace(/\b(?:public|private|protected\s+)?([A-Z]\w*)\s*\(([^)]*)\)\s*\{/g, 'function $1($2) {');
+
     jsCode = jsCode.replace(/public\s+static\s+void\s+main\s*\(\s*String\[\]\s+\w+\s*\)\s*\{/g, `${funcPrefix} main() {`);
     jsCode = jsCode.replace(/(?:public\s+|private\s+|protected\s+|static\s+)*(?:void|int|String|double|boolean|float|long|char|byte|short|[A-Z]\w*(?:<[^>]+>)?)(?:\[\s*\])?\s+(\w+)\s*\(/g, `${funcPrefix} $1(`);
 
@@ -210,11 +226,12 @@ export function transpileJavaToJS(javaCode, appendMain = true, isDebug = false) 
 
     jsCode = jsCode.replace(/\b(?:public|private|protected|static)\s+/g, '');
 
-    // Support qualified class names like Map.Entry in variable declarations
-    jsCode = jsCode.replace(/\b([A-Z]\w*(?:\.[A-Z]\w*)*|[a-z]\w*(?:\[\s*\])?)\s+(\w+)\s*(={1}|;)/g, function(match, type, name, ending) {
-        if (['return', 'new', 'else', 'throw'].includes(type)) return match;
-        return `let ${name} ${ending}`;
-    });
+    // Strip Java typecasts (e.g. (int) to Math.floor)
+    jsCode = jsCode.replace(/\(int\)\s*\(([^)]+)\)/g, 'Math.floor($1)');
+    jsCode = jsCode.replace(/\(int\)\s*([a-zA-Z0-9_.]+)/g, 'Math.floor($1)');
+
+    // Support Java variable and field declarations (including comma-separated lists)
+    jsCode = jsCode.replace(/\b(?:int|double|boolean|char|float|long|short|byte|String|[A-Z]\w*(?:\.[A-Z]\w*)*)(?:\[\s*\])?\s+([a-zA-Z_]\w*[^;]*);/g, 'let $1;');
 
     // Create namespaces for classes to map static methods
     let namespaceCode = '';
@@ -236,6 +253,11 @@ export function transpileJavaToJS(javaCode, appendMain = true, isDebug = false) 
 
     if (appendMain) {
         jsCode += isDebug ? '\nawait main();' : '\nmain();';
+    }
+
+    // Restore stashed string literals
+    for (let i = 0; i < stringStash.length; i++) {
+        jsCode = jsCode.replace(`__STR_LITERAL_${i}__`, () => stringStash[i]);
     }
 
     window.POLYFILL_LINES = JAVA_POLYFILLS.split('\n').length + 1;
