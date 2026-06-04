@@ -41,6 +41,13 @@
                 </div>
             </div>
             <div class="header-actions">
+                <select id="templateSelector" class="select-dropdown header-select">
+                    <option value="">-- Load Template --</option>
+                    <option value="Hello Java">Hello Java</option>
+                    <option value="Map & Set Iterator">Map & Set Iterator</option>
+                    <option value="Fibonacci (DP)">Fibonacci (DP)</option>
+                    <option value="Binary Tree DFS">Binary Tree DFS</option>
+                </select>
                 <button id="themeToggleBtn" class="btn btn-secondary">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
                     <span>Theme</span>
@@ -49,6 +56,79 @@
         </header>
 
         <div class="main-content">
+            <!-- Collapsible Sidebar -->
+            <div class="sidebar glass-panel">
+                <div class="sidebar-tabs">
+                    <button class="tab-btn active" data-tab="files" title="Files (📁)">📁</button>
+                    <button class="tab-btn" data-tab="challenges" title="Challenges (🏆)">🏆</button>
+                    <button class="tab-btn" data-tab="snippets" title="Snippets (🧩)">🧩</button>
+                    <button class="tab-btn" data-tab="debugger" title="Debugger (🐞)">🐞</button>
+                </div>
+                <div class="sidebar-content">
+                    <!-- Files Panel -->
+                    <div class="tab-pane active" id="pane-files">
+                        <div class="pane-header">
+                            <h3>Files</h3>
+                            <button id="addFileBtn" class="btn-icon" title="New File">+</button>
+                        </div>
+                        <ul id="fileList" class="item-list"></ul>
+                    </div>
+                    <!-- Challenges Panel -->
+                    <div class="tab-pane" id="pane-challenges">
+                        <div class="pane-header">
+                            <h3>Challenges</h3>
+                        </div>
+                        <select id="challengeSelector" class="select-dropdown">
+                            <option value="">-- Select Challenge --</option>
+                            <option value="two-sum">Two Sum (Easy)</option>
+                            <option value="palindrome-number">Palindrome Number (Easy)</option>
+                            <option value="reverse-string">Reverse String (Easy)</option>
+                        </select>
+                        <div id="challengeDetailPanel" class="hidden">
+                            <div class="difficulty-tag easy">Easy</div>
+                            <div id="challengeDesc" class="challenge-desc"></div>
+                            <button id="runTestsBtn" class="btn btn-primary" style="margin-top:12px; width:100%; justify-content:center;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                                Run Tests
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Snippets Panel -->
+                    <div class="tab-pane" id="pane-snippets">
+                        <div class="pane-header">
+                            <h3>Snippets</h3>
+                        </div>
+                        <div class="snippets-grid">
+                            <button class="snippet-btn" data-snippet="Binary Search">Binary Search</button>
+                            <button class="snippet-btn" data-snippet="Bubble Sort">Bubble Sort</button>
+                            <button class="snippet-btn" data-snippet="Reverse Linked List">Reverse List</button>
+                            <button class="snippet-btn" data-snippet="Graph BFS">Graph BFS</button>
+                            <button class="snippet-btn" data-snippet="Frequency Map">Frequency Map</button>
+                        </div>
+                    </div>
+                    <!-- Debugger Panel -->
+                    <div class="tab-pane" id="pane-debugger">
+                        <div class="pane-header">
+                            <h3>Debugger</h3>
+                        </div>
+                        <div class="debug-controls">
+                            <button id="debugStartBtn" class="btn btn-primary" style="width:100%; justify-content:center;">🐞 Start Debug Session</button>
+                            <div id="debugActiveGroup" class="hidden" style="margin-top:12px;">
+                                <div class="debug-buttons-row">
+                                    <button id="debugResumeBtn" class="btn btn-primary" title="Resume (Play)"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg></button>
+                                    <button id="debugStepBtn" class="btn btn-secondary" title="Step Over"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></button>
+                                    <button id="debugStopBtn" class="btn btn-secondary btn-danger" title="Stop"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect></svg></button>
+                                </div>
+                                <div class="debug-status">
+                                    <span class="pulse-indicator red"></span> Paused on Line <span id="debugLineNum">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Editor Section -->
             <div class="editor-section glass-panel">
                 <div class="panel-header">
                     <div class="panel-title-group">

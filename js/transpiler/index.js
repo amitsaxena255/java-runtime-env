@@ -41,11 +41,87 @@ export function enforceSemicolons(code) {
     return null;
 }
 
-export function transpileJavaToJS(javaCode, appendMain = true) {
+export function transpileJavaToJS(javaCode, appendMain = true, isDebug = false) {
     logger.debug('Starting transpilation of Java code');
     let jsCode = javaCode;
 
-    // Blank out comments to avoid matching Java constructs inside comments, while preserving line numbers.
+    // Scan for all classes and their methods
+    const classes = [];
+    const classRegex = /\bclass\s+(\w+)/g;
+    let match;
+    const replacements = [];
+    
+    // Create a copy of code where comments and string literals are blanked out to match braces correctly
+    let commentStripped = javaCode
+        .replace(/\/\*([\s\S]*?)\*\//g, (m, p1) => '/*' + p1.replace(/[^\n]/g, ' ') + '*/')
+        .replace(/\/\/[^\n]*/g, (m) => '//' + ' '.repeat(m.length - 2))
+        .replace(/"([^"\\]|\\.)*"/g, (m) => '"' + ' '.repeat(m.length - 2) + '"')
+        .replace(/'([^'\\]|\\.)*'/g, (m) => "'" + ' '.repeat(m.length - 2) + "'");
+
+    while ((match = classRegex.exec(commentStripped)) !== null) {
+        const className = match[1];
+        const classIndex = match.index;
+        
+        let startDecl = classIndex;
+        while (startDecl > 0 && /\s/.test(commentStripped[startDecl - 1])) {
+            startDecl--;
+        }
+        
+        const prefixMatch = commentStripped.substring(Math.max(0, startDecl - 20), startDecl).match(/\b(public|private|protected)\s*$/);
+        if (prefixMatch) {
+            startDecl -= prefixMatch[0].length;
+        }
+        
+        const openBraceIndex = commentStripped.indexOf('{', classIndex);
+        if (openBraceIndex === -1) continue;
+        
+        let braceCount = 1;
+        let closeBraceIndex = -1;
+        for (let i = openBraceIndex + 1; i < commentStripped.length; i++) {
+            if (commentStripped[i] === '{') braceCount++;
+            else if (commentStripped[i] === '}') {
+                braceCount--;
+                if (braceCount === 0) {
+                    closeBraceIndex = i;
+                    break;
+                }
+            }
+        }
+        
+        if (closeBraceIndex !== -1) {
+            const classBody = commentStripped.substring(openBraceIndex + 1, closeBraceIndex);
+            
+            const methodNames = [];
+            const methodRegex = /(?:public\s+|private\s+|protected\s+|static\s+)*(?:void|int|String|double|boolean|float|long|char|byte|short|[A-Z]\w*(?:<[^>]+>)?)(?:\[\s*\])?\s+(\w+)\s*\(/g;
+            let methodMatch;
+            while ((methodMatch = methodRegex.exec(classBody)) !== null) {
+                const methodName = methodMatch[1];
+                if (methodName !== 'System' && methodName !== 'Math' && methodName !== className) {
+                    methodNames.push(methodName);
+                }
+            }
+            
+            classes.push({
+                name: className,
+                methods: methodNames
+            });
+            
+            replacements.push({ start: startDecl, end: openBraceIndex + 1 });
+            replacements.push({ start: closeBraceIndex, end: closeBraceIndex + 1 });
+        }
+    }
+
+    // Apply replacements to jsCode to strip all class wrappers
+    replacements.sort((a, b) => b.start - a.start);
+    for (const rep of replacements) {
+        const before = jsCode.substring(0, rep.start);
+        const originalText = jsCode.substring(rep.start, rep.end);
+        const replacedText = originalText.replace(/[^\n]/g, ' ');
+        const after = jsCode.substring(rep.end);
+        jsCode = before + replacedText + after;
+    }
+
+    // Blank out comments in jsCode to avoid matching Java constructs inside comments, while preserving line numbers.
     jsCode = jsCode.replace(/\/\*([\s\S]*?)\*\//g, (match, p1) => {
         return '/*' + p1.replace(/[^\n]/g, ' ') + '*/';
     });
@@ -56,9 +132,49 @@ export function transpileJavaToJS(javaCode, appendMain = true) {
     // Strip Java import statements
     jsCode = jsCode.replace(/^\s*import\s+[\w.*]+;/gm, '');
 
-    jsCode = jsCode.replace(/public\s+class\s+\w+\s*\{/, '');
-    jsCode = jsCode.replace(/public\s+static\s+void\s+main\s*\(\s*String\[\]\s+\w+\s*\)\s*\{/g, 'function main() {');
-    jsCode = jsCode.replace(/(?:public\s+|private\s+|protected\s+|static\s+)*(?:void|int|String|double|boolean|float|long|char|byte|short|[A-Z]\w*(?:<[^>]+>)?)(?:\[\s*\])?\s+(\w+)\s*\(/g, 'function $1(');
+    // Extract user method names to prepended await calls in debug mode
+    const methodNames = [];
+    if (isDebug) {
+        const methodRegex = /(?:public\s+|private\s+|protected\s+|static\s+)*(?:void|int|String|double|boolean|float|long|char|byte|short|[A-Z]\w*(?:<[^>]+>)?)(?:\[\s*\])?\s+(\w+)\s*\(/g;
+        let match;
+        while ((match = methodRegex.exec(javaCode)) !== null) {
+            if (match[1] !== 'main' && match[1] !== 'System' && match[1] !== 'Math') {
+                methodNames.push(match[1]);
+            }
+        }
+    }
+
+    if (isDebug) {
+        // Instrument lines with debug pauses
+        const lines = jsCode.split('\n');
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i].trim();
+            const isExecutable = line.endsWith(';') || 
+                                 line.startsWith('if') || 
+                                 line.startsWith('for') || 
+                                 line.startsWith('while') || 
+                                 line.startsWith('do') || 
+                                 line.startsWith('switch') || 
+                                 line.startsWith('return');
+            const isStructural = line.startsWith('import') || 
+                                 line.startsWith('public class') || 
+                                 line.startsWith('class') || 
+                                 line.startsWith('//') || 
+                                 line.startsWith('/*') || 
+                                 line.startsWith('*') || 
+                                 line.startsWith('package');
+            
+            if (isExecutable && !isStructural) {
+                lines[i] = `await window.debugLine(${i + 1}); ` + lines[i];
+            }
+        }
+        jsCode = lines.join('\n');
+    }
+
+    const funcPrefix = isDebug ? 'async function' : 'function';
+
+    jsCode = jsCode.replace(/public\s+static\s+void\s+main\s*\(\s*String\[\]\s+\w+\s*\)\s*\{/g, `${funcPrefix} main() {`);
+    jsCode = jsCode.replace(/(?:public\s+|private\s+|protected\s+|static\s+)*(?:void|int|String|double|boolean|float|long|char|byte|short|[A-Z]\w*(?:<[^>]+>)?)(?:\[\s*\])?\s+(\w+)\s*\(/g, `${funcPrefix} $1(`);
 
     jsCode = jsCode.replace(/System\.out\.println\s*\(/g, 'console.log(');
     jsCode = jsCode.replace(/System\.out\.print\s*\(/g, 'console.log(');
@@ -67,6 +183,7 @@ export function transpileJavaToJS(javaCode, appendMain = true) {
     jsCode = jsCode.replace(/\.charAt\s*\(([^)]+)\)/g, '[$1]');
 
     jsCode = jsCode.replace(/new\s+\w+\[\s*\]\s*\{([^}]*)\}/g, '[$1]');
+    jsCode = jsCode.replace(/new\s+(?:int|double|float|long|short|byte|char|boolean|String|[A-Z]\w*(?:\.[A-Z]\w*)*)\s*\[([^\]]+)\]/g, 'new Array($1).fill(0)');
 
     // Support dot-separated types in enhanced for loops (e.g. Map.Entry)
     jsCode = jsCode.replace(/for\s*\(\s*[\w.]+(?:<[^>]+>)?\s+(\w+)\s*:\s*([^)]+)\)/g, 'for (let $1 of $2)');
@@ -77,6 +194,9 @@ export function transpileJavaToJS(javaCode, appendMain = true) {
         jsCode = jsCode.replace(/([A-Z]\w*)\s*<[^<>]*>/g, '$1');
         if (jsCode === prev) break;
     }
+
+    // Strip Java exception types from catch blocks
+    jsCode = jsCode.replace(/catch\s*\(\s*[\w.|<>\[\]]+\s+(\w+)\s*\)/g, 'catch ($1)');
 
     jsCode = jsCode.replace(/function\s+\w+\s*\(([^)]*)\)/g, function(match, params) {
         let paramList = params.split(",").map(p => {
@@ -96,17 +216,38 @@ export function transpileJavaToJS(javaCode, appendMain = true) {
         return `let ${name} ${ending}`;
     });
 
-    const lastBraceIndex = jsCode.lastIndexOf('}');
-    if (lastBraceIndex !== -1) {
-        jsCode = jsCode.substring(0, lastBraceIndex) + jsCode.substring(lastBraceIndex + 1);
+    // Create namespaces for classes to map static methods
+    let namespaceCode = '';
+    for (const cls of classes) {
+        namespaceCode += `\nif (typeof ${cls.name} === 'undefined') { var ${cls.name} = function() {}; }\n`;
+        for (const method of cls.methods) {
+            namespaceCode += `${cls.name}.${method} = ${method};\n`;
+        }
+    }
+    jsCode += '\n' + namespaceCode;
+
+    if (isDebug) {
+        // Prepend await to user method calls
+        for (const methodName of ['main', ...methodNames]) {
+            const callRegex = new RegExp(`(?<!async\\s+function\\s+)(?<!await\\s+)\\b(${methodName})\\s*\\(`, 'g');
+            jsCode = jsCode.replace(callRegex, 'await $1(');
+        }
     }
 
     if (appendMain) {
-        jsCode += '\nmain();';
+        jsCode += isDebug ? '\nawait main();' : '\nmain();';
     }
 
     window.POLYFILL_LINES = JAVA_POLYFILLS.split('\n').length + 1;
     logger.debug(`Transpilation complete. Polyfill offset: ${window.POLYFILL_LINES} lines.`);
+
+    if (isDebug) {
+        // Wrap everything in an async IIFE for top-level await support
+        return `return (async () => {
+${JAVA_POLYFILLS}
+${jsCode}
+})();`;
+    }
 
     return JAVA_POLYFILLS + '\n' + jsCode;
 }

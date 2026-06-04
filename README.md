@@ -5,12 +5,14 @@ A fully functional in-browser Java IDE for practicing Java coding. Write, compil
 ## Features
 
 - ✨ **In-Browser Java Execution** - No server needed, runs locally in your browser
-- 📝 **Code Editor** - Syntax highlighting and code completion for Java
-- 🚀 **One-Click Execution** - Compile and run Java programs instantly
-- 📊 **Real-time Output** - View program output immediately
-- 🎯 **Practice Templates** - Pre-configured templates for learning
-- 💾 **Code Persistence** - Save your code to local storage automatically
-- ⌨️ **Keyboard Shortcuts** - Ctrl+Enter (or Cmd+Enter on Mac) to run code
+- 📁 **Multi-File Workspace** - Create, rename, delete, and switch between multiple `.java` files
+- 🐞 **Step-Through Debugger** - Pause, step over, resume, and terminate execution with line highlighting
+- 🏆 **Coding Challenges** - Integrated Leetcode-style challenges with automated testing verification
+- 🧩 **Code Snippets** - Inject common algorithms (Binary Search, Bubble Sort, BFS) in one click
+- 📝 **Code Editor** - Full Monaco Editor setup with custom keybindings and syntax highlighting
+- ⚡ **Auto-Imports** - Automatically resolves and prepends Java imports on save/run
+- 💾 **Code Persistence** - Automatic workspace backups to localStorage
+
 
 ## Technology Stack
 
@@ -230,13 +232,13 @@ public class Solution {
 ## Future Enhancements
 
 - [x] Add support for more Java collections
-- [ ] Implement debugging features (breakpoints, step-through)
-- [ ] Add code snippets library
-- [ ] Support multiple files
+- [x] Implement debugging features (breakpoints, step-through)
+- [x] Add code snippets library
+- [x] Support multiple files
 - [x] Add dark/light theme toggle
 - [x] Implement code formatting
-- [ ] Add more example templates
-- [ ] Create a problem/challenge system
+- [x] Add more example templates
+- [x] Create a problem/challenge system
 
 ## Contributing
 
