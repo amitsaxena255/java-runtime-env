@@ -163,6 +163,8 @@ function setupProEventListeners() {
     const snippetBtns = document.querySelectorAll('.snippet-btn');
     snippetBtns.forEach(btn => {
         btn.addEventListener('click', () => {
+            snippetBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
             const name = btn.getAttribute('data-snippet');
             injectSnippet(name);
         });

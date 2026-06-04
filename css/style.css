@@ -484,6 +484,11 @@ body.dark-theme .challenge-desc code {
     background: var(--btn-secondary-hover);
     transform: translateY(-1px);
 }
+.snippet-btn.active {
+    background: var(--btn-ghost-hover);
+    border-color: var(--accent);
+    box-shadow: 0 0 8px var(--shadow-color-btn);
+}
 .debug-controls {
     display: flex;
     flex-direction: column;

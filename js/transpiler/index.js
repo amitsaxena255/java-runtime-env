@@ -149,7 +149,7 @@ export function transpileJavaToJS(javaCode, appendMain = true, isDebug = false) 
     });
 
     // Strip Java import statements
-    jsCode = jsCode.replace(/^\s*import\s+[\w.*]+;/gm, '');
+    jsCode = jsCode.replace(/\bimport\s+[^;\n]+;?/g, '');
 
     // Extract user method names to prepended await calls in debug mode
     const methodNames = [];

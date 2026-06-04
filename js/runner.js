@@ -50,6 +50,9 @@ export async function executeJava(code, isDebug = false) {
                 output.push(args.join(' '));
             };
 
+            if (typeof originalLog !== 'undefined') {
+                originalLog("DEBUG JSCODE:\n" + jsCode);
+            }
             const func = new Function(jsCode);
             const result = func();
             if (result instanceof Promise) {
