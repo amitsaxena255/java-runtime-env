@@ -9,18 +9,34 @@ export async function executeJava(code) {
     return new Promise((resolve, reject) => {
         let originalLog;
         try {
-            if (!validateJavaCode(code)) {
-                telemetry.track('code_run_failed', { reason: 'validation_error' });
-                throw new Error('Invalid Java code structure. Please ensure you have a public class with a main method.');
+            const hasClass = /public\s+class\s+\w+/.test(code);
+            const hasMain = /public\s+static\s+void\s+main\s*\(\s*String\[\]\s+\w+\s*\)/.test(code);
+
+            if (!hasClass) {
+                telemetry.track('code_run_failed', { reason: 'no_public_class' });
+                throw new Error('Invalid Java code structure. Please ensure you have a public class.');
             }
-            
+
+            if (!hasMain) {
+                const semicolonError = enforceSemicolons(code);
+                if (semicolonError) {
+                    telemetry.track('code_run_failed', { reason: 'missing_semicolon' });
+                    throw new Error('Syntax Error: ' + semicolonError);
+                }
+
+                const jsCode = transpileJavaToJS(code, false);
+                new Function(jsCode);
+                telemetry.track('code_run_failed', { reason: 'no_main_method_syntactically_correct' });
+                throw new Error('There is no main method, but the code is syntactically correct.');
+            }
+
             const semicolonError = enforceSemicolons(code);
             if (semicolonError) {
                 telemetry.track('code_run_failed', { reason: 'missing_semicolon' });
                 throw new Error('Syntax Error: ' + semicolonError);
             }
 
-            const jsCode = transpileJavaToJS(code);
+            const jsCode = transpileJavaToJS(code, true);
             const output = [];
             originalLog = console.log;
             

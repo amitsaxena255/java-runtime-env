@@ -41,7 +41,7 @@ export function enforceSemicolons(code) {
     return null;
 }
 
-export function transpileJavaToJS(javaCode) {
+export function transpileJavaToJS(javaCode, appendMain = true) {
     logger.debug('Starting transpilation of Java code');
     let jsCode = javaCode;
 
@@ -98,7 +98,9 @@ export function transpileJavaToJS(javaCode) {
         jsCode = jsCode.substring(0, lastBraceIndex) + jsCode.substring(lastBraceIndex + 1);
     }
 
-    jsCode += '\nmain();';
+    if (appendMain) {
+        jsCode += '\nmain();';
+    }
 
     window.POLYFILL_LINES = JAVA_POLYFILLS.split('\n').length + 1;
     logger.debug(`Transpilation complete. Polyfill offset: ${window.POLYFILL_LINES} lines.`);
