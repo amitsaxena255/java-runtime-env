@@ -162,9 +162,12 @@ public class Solution {
 - System.out.println() for output
 - Comments (// and /* */)
 - Basic object-oriented features
+- **Collections**: Full support for `ArrayList`, `HashMap`, `HashSet` (including `Iterator`, `keySet()`, `values()`, `entrySet()`, `Map.Entry`, and enhanced `for` loops)
+- **Auto-Imports**: Automatically detects used utility classes and prepends the standard `import` statements at the top of the editor
+- **Arrays Utility**: Polyfill support for `Arrays.sort()`, `Arrays.toString()`, `Arrays.fill()`, and `Arrays.equals()`
+- **Missing Main Validation**: Structural analysis to check if code lacking a `main` method is syntactically correct
 
 ### ⚠️ Limited Support
-- Collections (basic ArrayList support)
 - Custom classes and objects
 - Inheritance and interfaces
 
@@ -172,7 +175,7 @@ public class Solution {
 - File I/O operations (security restriction)
 - Network operations
 - Multi-threading
-- External libraries and imports
+- External/third-party libraries
 - Database connections
 
 ## Browser Compatibility
@@ -218,20 +221,20 @@ public class Solution {
 
 ## Limitations
 
-1. **No standard library** - Limited to basic Java features
+1. **Standard Libraries** - Supports common utility collections (`HashMap`, `HashSet`, `ArrayList`, `Arrays`, `Collections`, `Iterator`, etc.) but other packages are not polyfilled.
 2. **No file I/O** - Cannot read/write files for security
 3. **No network access** - Cannot make HTTP requests
 4. **Single-threaded** - No concurrent programming support
-5. **No imports** - Cannot use external packages
+5. **External Imports** - Third-party libraries/dependencies are not supported.
 
 ## Future Enhancements
 
-- [ ] Add support for more Java collections
+- [x] Add support for more Java collections
 - [ ] Implement debugging features (breakpoints, step-through)
 - [ ] Add code snippets library
 - [ ] Support multiple files
-- [ ] Add dark/light theme toggle
-- [ ] Implement code formatting
+- [x] Add dark/light theme toggle
+- [x] Implement code formatting
 - [ ] Add more example templates
 - [ ] Create a problem/challenge system
 
