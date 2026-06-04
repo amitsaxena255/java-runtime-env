@@ -32,14 +32,14 @@ export function enforceSemicolons(code) {
             line === 'continue' ||
             line.match(/^[a-zA-Z_][a-zA-Z0-9_]*(?:\[.*\])?\s*=(?!=)/)) {
             
-            if (!line.endsWith(';') && !line.endsWith('{') && !line.endsWith(',')) {
+            if (!line.endsWith(';') && !line.endsWith('{') && !line.endsWith(',') && !line.endsWith('}')) {
                 return `Line ${i + 1}: Missing semicolon (;)\n  > ${lines[i].trim()}`;
             }
         }
         
         // Check simple method calls (like solution())
         if (line.match(/^[a-zA-Z_][a-zA-Z0-9_]*\s*\(/)) {
-            if (!line.endsWith('{') && !line.endsWith(';')) {
+            if (!line.endsWith('{') && !line.endsWith(';') && !line.endsWith('}')) {
                 return `Line ${i + 1}: Missing semicolon (;)\n  > ${lines[i].trim()}`;
             }
         }
