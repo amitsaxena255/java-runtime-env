@@ -18,6 +18,12 @@ export function enforceSemicolons(code) {
         if (line.endsWith('*/')) { insideComment = false; continue; }
         if (insideComment || line.startsWith('//') || line === '') continue;
 
+        // Strip trailing comments for semicolon checking
+        const commentIndex = line.indexOf('//');
+        if (commentIndex !== -1) {
+            line = line.substring(0, commentIndex).trim();
+        }
+
         // Check statements that should always end with a semicolon
         if (line.startsWith('System.out') || 
             line.match(/^(int|String|boolean|double|float|long|char|byte|short)\s+[a-zA-Z_]/) || 
