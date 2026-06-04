@@ -164,7 +164,31 @@ body.dark-theme .beach-engineer-container {
     display: flex; justify-content: space-between; align-items: center; 
     background: var(--panel-header-bg);
 }
+.panel-title-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
 .panel-header h2 { font-size: 0.95rem; font-weight: 700; color: var(--text-main); letter-spacing: 0.5px; text-transform: uppercase; }
+.auto-import-badge {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--success);
+    background: rgba(16, 185, 129, 0.08);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    padding: 3px 10px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    letter-spacing: 0.2px;
+    animation: pulse-soft 3s infinite;
+}
+@keyframes pulse-soft {
+    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.15); }
+    70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
 
 .editor-actions { display: flex; gap: 8px; }
 
