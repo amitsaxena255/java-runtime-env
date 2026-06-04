@@ -45,6 +45,14 @@ export function transpileJavaToJS(javaCode) {
     logger.debug('Starting transpilation of Java code');
     let jsCode = javaCode;
 
+    // Blank out comments to avoid matching Java constructs inside comments, while preserving line numbers.
+    jsCode = jsCode.replace(/\/\*([\s\S]*?)\*\//g, (match, p1) => {
+        return '/*' + p1.replace(/[^\n]/g, ' ') + '*/';
+    });
+    jsCode = jsCode.replace(/\/\/[^\n]*/g, (match) => {
+        return '//' + ' '.repeat(match.length - 2);
+    });
+
     jsCode = jsCode.replace(/public\s+class\s+\w+\s*\{/, '');
     jsCode = jsCode.replace(/public\s+static\s+void\s+main\s*\(\s*String\[\]\s+\w+\s*\)\s*\{/g, 'function main() {');
     jsCode = jsCode.replace(/(?:public\s+|private\s+|protected\s+|static\s+)*(?:void|int|String|double|boolean|float|long|char|byte|short|[A-Z]\w*(?:<[^>]+>)?)(?:\[\s*\])?\s+(\w+)\s*\(/g, 'function $1(');
@@ -57,9 +65,15 @@ export function transpileJavaToJS(javaCode) {
 
     jsCode = jsCode.replace(/new\s+\w+\[\s*\]\s*\{([^}]*)\}/g, '[$1]');
 
-    jsCode = jsCode.replace(/for\s*\(\s*\w+(?:<[^>]+>)?\s+(\w+)\s*:\s*([^)]+)\)/g, 'for (let $1 of $2)');
+    // Support dot-separated types in enhanced for loops (e.g. Map.Entry)
+    jsCode = jsCode.replace(/for\s*\(\s*[\w.]+(?:<[^>]+>)?\s+(\w+)\s*:\s*([^)]+)\)/g, 'for (let $1 of $2)');
 
-    jsCode = jsCode.replace(/([A-Z]\w*)\s*<[^>]*>/g, '$1');
+    // Recursively strip nested generics (e.g. Iterator<Map.Entry<String, String>>)
+    while (true) {
+        let prev = jsCode;
+        jsCode = jsCode.replace(/([A-Z]\w*)\s*<[^<>]*>/g, '$1');
+        if (jsCode === prev) break;
+    }
 
     jsCode = jsCode.replace(/function\s+\w+\s*\(([^)]*)\)/g, function(match, params) {
         let paramList = params.split(",").map(p => {
@@ -73,7 +87,8 @@ export function transpileJavaToJS(javaCode) {
 
     jsCode = jsCode.replace(/\b(?:public|private|protected|static)\s+/g, '');
 
-    jsCode = jsCode.replace(/\b([A-Z]\w*|[a-z]\w*(?:\[\s*\])?)\s+(\w+)\s*(={1}|;)/g, function(match, type, name, ending) {
+    // Support qualified class names like Map.Entry in variable declarations
+    jsCode = jsCode.replace(/\b([A-Z]\w*(?:\.[A-Z]\w*)*|[a-z]\w*(?:\[\s*\])?)\s+(\w+)\s*(={1}|;)/g, function(match, type, name, ending) {
         if (['return', 'new', 'else', 'throw'].includes(type)) return match;
         return `let ${name} ${ending}`;
     });
