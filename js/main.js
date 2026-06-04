@@ -13,6 +13,8 @@ import { injectSnippet } from './editor/snippets.js';
 import { selectChallenge, runChallengeTests, getActiveChallenge } from './ui/challenges.js';
 import { initDebugger, startDebugSession, stopDebugSession, stepOver, resumeExecution, isDebugSessionActive } from './ui/debugger.js';
 
+let isTemplateLoading = false;
+
 logger.info('Oasis IDE starting up...');
 telemetry.track('app_load');
 
@@ -58,12 +60,27 @@ window.require(['vs/editor/editor.main'], function () {
 function setupEventListeners(editor) {
     document.getElementById('runBtn').addEventListener('click', runCode);
     document.getElementById('clearBtn').addEventListener('click', () => clearOutput());
-    document.getElementById('resetBtn').addEventListener('click', () => resetToDefault());
+    document.getElementById('resetBtn').addEventListener('click', () => {
+        resetToDefault();
+        document.getElementById('templateSelector').value = '';
+    });
     document.getElementById('formatBtn').addEventListener('click', formatCode);
     
     setupThemeToggle();
 
     editor.addCommand(window.monaco.KeyMod.CtrlCmd | window.monaco.KeyCode.Enter, runCode);
+
+    // Reset template dropdown when user edits the code
+    editor.onDidChangeModelContent(() => {
+        if (!isTemplateLoading) {
+            document.getElementById('templateSelector').value = '';
+        }
+    });
+
+    // Reset template dropdown when switching files/models
+    editor.onDidChangeModel(() => {
+        document.getElementById('templateSelector').value = '';
+    });
 }
 
 function clearOutput(isRunning = false) {
@@ -154,8 +171,9 @@ function setupProEventListeners() {
     document.getElementById('templateSelector').addEventListener('change', (e) => {
         const templateName = e.target.value;
         if (templateName) {
+            isTemplateLoading = true;
             loadTemplate(templateName);
-            e.target.value = ''; // reset dropdown
+            isTemplateLoading = false;
         }
     });
 
