@@ -237,7 +237,7 @@ export function transpileJavaToJS(javaCode, appendMain = true, isDebug = false) 
     jsCode = jsCode.replace(/\(int\)\s*([a-zA-Z0-9_.]+)/g, 'Math.floor($1)');
 
     // Support Java variable and field declarations (including comma-separated lists)
-    jsCode = jsCode.replace(/\b(?:int|double|boolean|char|float|long|short|byte|String|[A-Z]\w*(?:\.[A-Z]\w*)*)(?:\[\s*\])?\s+([a-zA-Z_]\w*[^;]*);/g, 'let $1;');
+    jsCode = jsCode.replace(/\b(?:int|double|boolean|char|float|long|short|byte|String|[A-Z]\w*(?:\.[A-Z]\w*)*)(?:\[\s*\])?\s+([a-zA-Z_]\w*[^;]*);/g, 'var $1;');
 
     // Create namespaces for classes to map static methods
     let namespaceCode = '';
