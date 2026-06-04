@@ -53,6 +53,9 @@ export function transpileJavaToJS(javaCode, appendMain = true) {
         return '//' + ' '.repeat(match.length - 2);
     });
 
+    // Strip Java import statements
+    jsCode = jsCode.replace(/^\s*import\s+[\w.*]+;/gm, '');
+
     jsCode = jsCode.replace(/public\s+class\s+\w+\s*\{/, '');
     jsCode = jsCode.replace(/public\s+static\s+void\s+main\s*\(\s*String\[\]\s+\w+\s*\)\s*\{/g, 'function main() {');
     jsCode = jsCode.replace(/(?:public\s+|private\s+|protected\s+|static\s+)*(?:void|int|String|double|boolean|float|long|char|byte|short|[A-Z]\w*(?:<[^>]+>)?)(?:\[\s*\])?\s+(\w+)\s*\(/g, 'function $1(');

@@ -1,13 +1,14 @@
 import { getEditor } from './editor.js';
 import { logger } from '../utils/logger.js';
 import { telemetry } from '../utils/telemetry.js';
+import { autoImport } from './autoImport.js';
 
 export function formatCode() {
     const editor = getEditor();
     if (!editor) return;
 
     logger.debug('Formatting code triggered');
-    const code = editor.getValue();
+    const code = autoImport(editor.getValue());
     let formatted = '';
     let indentLevel = 0;
     const lines = code.split('\n');

@@ -73,5 +73,37 @@ class ArrayList extends Array {
     isEmpty() { return this.length === 0; }
     iterator() { return new JavaIterator(this); }
 }
+
+class Arrays {
+    static sort(arr) {
+        if (Array.isArray(arr)) {
+            arr.sort((a, b) => {
+                if (typeof a === 'number' && typeof b === 'number') return a - b;
+                return String(a).localeCompare(String(b));
+            });
+        }
+    }
+    static toString(arr) {
+        if (!Array.isArray(arr)) return "null";
+        return "[" + arr.map(x => {
+            if (Array.isArray(x)) return Arrays.toString(x);
+            return String(x);
+        }).join(", ") + "]";
+    }
+    static fill(arr, val) {
+        if (Array.isArray(arr)) {
+            arr.fill(val);
+        }
+    }
+    static equals(a, b) {
+        if (a === b) return true;
+        if (!Array.isArray(a) || !Array.isArray(b)) return false;
+        if (a.length !== b.length) return false;
+        for (let i = 0; i < a.length; i++) {
+            if (a[i] !== b[i]) return false;
+        }
+        return true;
+    }
+}
 `;
 

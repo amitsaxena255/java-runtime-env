@@ -1,9 +1,10 @@
 import { logger } from './utils/logger.js';
 import { telemetry } from './utils/telemetry.js';
-import { initEditor, getCode, resetToDefault } from './editor/editor.js';
+import { initEditor, getCode, setCode, resetToDefault } from './editor/editor.js';
 import { formatCode } from './editor/formatter.js';
 import { setupThemeToggle } from './ui/theme.js';
 import { executeJava } from './runner.js';
+import { autoImport } from './editor/autoImport.js';
 
 logger.info('Oasis IDE starting up...');
 telemetry.track('app_load');
@@ -57,6 +58,11 @@ function displayError(message, timeTaken) {
 
 async function runCode() {
     const code = getCode();
+    const importedCode = autoImport(code);
+    if (importedCode !== code) {
+        setCode(importedCode);
+    }
+    const finalCode = importedCode;
     clearOutput(true);
     
     const loadingIndicator = document.getElementById('loadingIndicator');
@@ -64,7 +70,7 @@ async function runCode() {
 
     const start = performance.now();
     try {
-        const output = await executeJava(code);
+        const output = await executeJava(finalCode);
         const timeTaken = Math.round(performance.now() - start);
         displayOutput(output, timeTaken);
     } catch (error) {
