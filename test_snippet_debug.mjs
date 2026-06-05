@@ -1,6 +1,14 @@
 import { chromium } from 'playwright';
+import { exec } from 'child_process';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-(async () => {
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const server = exec('python3 -m http.server 8000', { cwd: __dirname });
+
+setTimeout(async () => {
     let browser;
     try {
         browser = await chromium.launch({ headless: true });
@@ -20,12 +28,8 @@ import { chromium } from 'playwright';
         await page.reload();
         await page.waitForTimeout(2000);
         
-        console.log("Opening snippets...");
-        await page.click('.tab-btn[data-tab="snippets"]');
-        await page.waitForTimeout(500);
-        
-        console.log("Injecting Graph BFS...");
-        await page.click('.snippet-btn[data-snippet="Graph BFS"]');
+        console.log("Selecting template Graph BFS...");
+        await page.selectOption('#templateSelector', 'Graph BFS');
         await page.waitForTimeout(500);
         
         console.log("Running...");
@@ -36,8 +40,12 @@ import { chromium } from 'playwright';
         console.log("Output Console:\n", output.trim());
         
         await browser.close();
+        server.kill();
+        process.exit(0);
     } catch (e) {
         console.error("Test failed:", e);
         if (browser) await browser.close();
+        server.kill();
+        process.exit(1);
     }
-})();
+}, 2000);

@@ -35,27 +35,24 @@ const autoImportCtx = {};
 new Function('exports', autoImportContent)(autoImportCtx);
 const autoImport = autoImportCtx.autoImport;
 
-// Read SNIPPETS
-const snippetsPath = path.resolve(__dirname, 'js/editor/snippets.js');
-let snippetsContent = fs.readFileSync(snippetsPath, 'utf8')
+// Read TEMPLATES
+const templatesPath = path.resolve(__dirname, 'js/editor/templates.js');
+let templatesContent = fs.readFileSync(templatesPath, 'utf8')
     .replace(/^import\s+[\s\S]*?from\s+['"].*?['"];/gm, '') // remove ES6 imports
     .replace(/export\s+const/g, 'const')
     .replace(/export\s+function[\s\S]*$/, '');
-snippetsContent += '\nexports.SNIPPETS = SNIPPETS;';
-const snippetsCtx = {};
-new Function('exports', snippetsContent)(snippetsCtx);
-const SNIPPETS = snippetsCtx.SNIPPETS;
+templatesContent += '\nexports.TEMPLATES = TEMPLATES;';
+const templatesCtx = {};
+new Function('exports', templatesContent)(templatesCtx);
+const TEMPLATES = templatesCtx.TEMPLATES;
 
 // Simulate Graph BFS injection and auto-import
-const javaCode = `public class Solution {
-    public static void main(String[] args) {
-        solution();
-    }
-    public static void solution() {
-        System.out.println("Welcome to Oasis IDE!");
-    }
-    ${SNIPPETS['Graph BFS']}
-}`;
+// Strip existing imports from the template to verify auto-import can dynamically add them
+const templateWithoutImports = TEMPLATES['Graph BFS'].split('\n')
+    .filter(line => !line.trim().startsWith('import '))
+    .join('\n');
+
+const javaCode = templateWithoutImports;
 
 const importedCode = autoImport(javaCode);
 console.log("--- Code after Auto Import ---");

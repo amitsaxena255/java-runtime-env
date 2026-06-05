@@ -1,4 +1,4 @@
-import { setFileContent, getFileNames, createFile, setActiveFile } from '../editor/fileSystem.js';
+import { setCode } from '../editor/editor.js';
 import { executeJava } from '../runner.js';
 
 export const CHALLENGES = {
@@ -132,13 +132,8 @@ export function selectChallenge(challengeId) {
     activeChallengeId = challengeId;
     const challenge = CHALLENGES[challengeId];
 
-    // Load template into Solution.java
-    if (getFileNames().includes('Solution.java')) {
-        setFileContent('Solution.java', challenge.template);
-        setActiveFile('Solution.java');
-    } else {
-        createFile('Solution.java', challenge.template);
-    }
+    // Load template into Monaco editor
+    setCode(challenge.template);
     
     return challenge;
 }

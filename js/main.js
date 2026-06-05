@@ -7,9 +7,7 @@ import { executeJava } from './runner.js';
 import { autoImport } from './editor/autoImport.js';
 
 // Pro Upgrades Imports
-import { initFileSystem, getFileNames, getActiveFileName, getFileContent, setFileContent, getActiveFileContent, getAllFilesContent, setActiveFile, createFile, deleteFile, renameFile } from './editor/fileSystem.js';
 import { loadTemplate } from './editor/templates.js';
-import { injectSnippet } from './editor/snippets.js';
 import { selectChallenge, runChallengeTests, getActiveChallenge } from './ui/challenges.js';
 import { initDebugger, startDebugSession, stopDebugSession, stepOver, resumeExecution, isDebugSessionActive } from './ui/debugger.js';
 
@@ -22,27 +20,12 @@ window.require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/m
 window.require(['vs/editor/editor.main'], function () {
     const editor = initEditor('editor');
     
-    // Initialize FileSystem with rendering callback
-    initFileSystem(renderFileList);
-    
     // Initialize Debugger with line highlight and state callbacks
     initDebugger(updateDebugLineUI, toggleDebugControlsUI);
     
     // Expose helpers for testing & integration
     window.oasis = {
         editor,
-        fileSystem: {
-            getFileNames,
-            getActiveFileName,
-            getFileContent,
-            setFileContent,
-            getActiveFileContent,
-            getAllFilesContent,
-            setActiveFile,
-            createFile,
-            deleteFile,
-            renameFile
-        },
         debugger: {
             startDebugSession,
             stopDebugSession,
@@ -113,15 +96,12 @@ function displayError(message, timeTaken) {
 }
 
 async function runCode() {
-    const code = getAllFilesContent();
-    const activeCode = getActiveFileContent();
-    const importedCode = autoImport(activeCode);
-    if (importedCode !== activeCode) {
-        setFileContent(getActiveFileName(), importedCode);
+    const code = getCode();
+    const importedCode = autoImport(code);
+    if (importedCode !== code) {
+        setCode(importedCode);
     }
     
-    // We combine all files content for compilation
-    const finalCode = getAllFilesContent();
     clearOutput(true);
     
     const loadingIndicator = document.getElementById('loadingIndicator');
@@ -129,7 +109,7 @@ async function runCode() {
 
     const start = performance.now();
     try {
-        const output = await executeJava(finalCode, false);
+        const output = await executeJava(importedCode, false);
         const timeTaken = Math.round(performance.now() - start);
         displayOutput(output, timeTaken);
     } catch (error) {
@@ -157,16 +137,6 @@ function setupProEventListeners() {
         });
     });
 
-    // File Management
-    document.getElementById('addFileBtn').addEventListener('click', () => {
-        const name = prompt('Enter Java file name (e.g. Helper.java):');
-        if (name) {
-            if (!createFile(name)) {
-                alert('File already exists or invalid name!');
-            }
-        }
-    });
-
     // Templates Selector
     document.getElementById('templateSelector').addEventListener('change', (e) => {
         const templateName = e.target.value;
@@ -175,17 +145,6 @@ function setupProEventListeners() {
             loadTemplate(templateName);
             isTemplateLoading = false;
         }
-    });
-
-    // Snippets injection
-    const snippetBtns = document.querySelectorAll('.snippet-btn');
-    snippetBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            snippetBtns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            const name = btn.getAttribute('data-snippet');
-            injectSnippet(name);
-        });
     });
 
     // Challenge selector
@@ -211,56 +170,6 @@ function setupProEventListeners() {
     document.getElementById('debugStopBtn').addEventListener('click', () => stopDebugSession());
 }
 
-// File List Rendering
-function renderFileList({ files, active }) {
-    const list = document.getElementById('fileList');
-    list.innerHTML = '';
-    
-    files.forEach(name => {
-        const li = document.createElement('li');
-        if (name === active) {
-            li.classList.add('active');
-        }
-        
-        const span = document.createElement('span');
-        span.textContent = name;
-        span.addEventListener('click', () => setActiveFile(name));
-        
-        // Double-click to rename
-        span.addEventListener('dblclick', () => {
-            const newName = prompt(`Rename ${name} to:`, name);
-            if (newName && newName !== name) {
-                if (!renameFile(name, newName)) {
-                    alert('Invalid name or file already exists!');
-                }
-            }
-        });
-        
-        li.appendChild(span);
-
-        // Delete action button (must keep at least 1 file)
-        if (files.length > 1) {
-            const actionsDiv = document.createElement('div');
-            actionsDiv.className = 'item-actions';
-            
-            const delBtn = document.createElement('button');
-            delBtn.className = 'btn-icon btn-danger';
-            delBtn.innerHTML = '×';
-            delBtn.title = 'Delete File';
-            delBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                if (confirm(`Delete ${name}?`)) {
-                    deleteFile(name);
-                }
-            });
-            actionsDiv.appendChild(delBtn);
-            li.appendChild(actionsDiv);
-        }
-        
-        list.appendChild(li);
-    });
-}
-
 // Challenge testing function
 async function runTests() {
     const challenge = getActiveChallenge();
@@ -275,7 +184,7 @@ async function runTests() {
         <div class="output-text">Running test cases against ${challenge.title}...</div>
     `;
 
-    const userCode = getFileContent('Solution.java');
+    const userCode = getCode();
     const result = await runChallengeTests(userCode);
     
     if (result.error) {
@@ -330,7 +239,7 @@ async function startDebugging() {
         <div class="output-text success-text">Paused on first breakpoint. Use controls to step through code.</div>
     `;
     
-    const finalCode = getAllFilesContent();
+    const finalCode = getCode();
     
     try {
         const output = await executeJava(finalCode, true);

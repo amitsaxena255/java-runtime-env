@@ -66,7 +66,7 @@ body.dark-theme {
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
     font-family: var(--font-ui); background: var(--bg-gradient); color: var(--text-main);
-    min-height: 100vh; padding: 2vh 4vw; display: flex; justify-content: center; position: relative; overflow-x: hidden;
+    min-height: 100vh; padding: 2vh 2.5vw; display: flex; justify-content: center; position: relative; overflow-x: hidden;
     transition: background 0.4s ease, color 0.4s ease;
 }
 
@@ -98,7 +98,7 @@ body {
     100% { transform: translateX(-50%) scaleY(1); }
 }
 
-.container { width: 100%; max-width: 1400px; display: flex; flex-direction: column; height: 96vh; gap: 24px; z-index: 1; }
+.container { width: 100%; max-width: 100%; display: flex; flex-direction: column; height: 96vh; gap: 24px; z-index: 1; }
 .header { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; }
 .header-content { display: flex; align-items: center; gap: 16px; }
 
